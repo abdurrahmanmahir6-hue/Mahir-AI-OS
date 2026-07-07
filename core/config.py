@@ -1,96 +1,54 @@
 """
 core/config.py
-
 Responsible for:
-    - Loading configuration from environment variables (.env file).
-    - Validating that required settings are present.
-    - Exposing configuration safely to the rest of the system.
-
-Design notes:
-    - This module is intentionally provider-agnostic. It does NOT
-      hardcode any specific AI provider's model name or endpoint.
-      Provider-specific configuration will be added in Sprint 4
-      (Provider Layer) without requiring changes to this file's
-      public interface.
-    - Uses a plain dataclass instead of a framework-specific settings
-      object so Sprint 2 introduces zero new hard dependencies beyond
-      python-dotenv (which itself degrades gracefully if not
-      installed). This can be swapped for `pydantic.BaseSettings`
-      later without breaking call sites, since callers only depend on
-      attribute access (config.openai_api_key, etc.), not on the
-      underlying implementation.
-    - Per MAFS Ch.10 (Security): no API key is ever hardcoded here.
-      Keys are read from the environment only.
+    - Loading environment variables from .env via python-dotenv.
+    - Validating required fields (API keys, log levels).
+    - Providing a single source of truth for all system settings.
+MAFS (Mahir Agentic Framework Standard) Compliance:
+    - Ch.2 (Truth Over Flattery): Fails fast if required keys are missing.
+    - Ch.2 (Security): Implements masked_summary() to prevent log leaks.
 """
-
 from __future__ import annotations
-
 import os
 from dataclasses import dataclass
 from typing import Optional
-
-try:
-    from dotenv import load_dotenv
-
-    _DOTENV_AVAILABLE = True
-except ImportError:  # pragma: no cover - environment without the package
-    _DOTENV_AVAILABLE = False
-
+from dotenv import load_dotenv
 
 class ConfigError(Exception):
-    """Raised when required configuration is missing or invalid."""
+    """Raised when the configuration is invalid or missing required fields."""
+    pass
 
-
-@dataclass(frozen=True)
+@dataclass
 class Config:
     """
-    Immutable application configuration.
-
-    Attributes:
-        app_name: Human-readable name of the application.
-        app_version: Current version string (e.g. "AR1").
-        environment: Deployment environment ("development", "production").
-        log_level: Minimum log level for the logger ("DEBUG", "INFO", ...).
-        openai_api_key: API key for OpenAI, if configured.
-        gemini_api_key: API key for Google Gemini, if configured.
-        tavily_api_key: API key for Tavily search, if configured.
-
-    Note:
-        No AI provider calls happen in Sprint 2. Keys are only loaded
-        and optionally validated for *presence*, so Sprint 4's
-        Provider Layer can consume them without touching this file.
+    Application-wide configuration.
+    Access values via attributes (e.g., config.openai_api_key).
+    Use Config.load() to instantiate from environment variables.
     """
-
-    app_name: str = "Mahir AI OS"
+    # System Settings
     app_version: str = "AR1"
     environment: str = "development"
     log_level: str = "INFO"
 
+    # API Keys (Secrets)
     openai_api_key: Optional[str] = None
     gemini_api_key: Optional[str] = None
     tavily_api_key: Optional[str] = None
 
-    @staticmethod
-    def load(dotenv_path: Optional[str] = None) -> "Config":
+    @classmethod
+    def load(cls, dotenv_path: Optional[str] = None) -> Config:
         """
-        Load configuration from environment variables.
-
+        Factory method to load config from environment variables.
         Args:
-            dotenv_path: Optional explicit path to a .env file. If None,
-                the default `.env` in the current working directory is
-                used when python-dotenv is installed.
-
+            dotenv_path: Optional path to a .env file.
         Returns:
-            A populated, immutable Config instance.
+            A populated Config instance.
         """
-        if _DOTENV_AVAILABLE:
-            load_dotenv(dotenv_path=dotenv_path)
+        load_dotenv(dotenv_path=dotenv_path)
 
         return Config(
-            app_name=os.getenv("APP_NAME", "Mahir AI OS"),
-            app_version=os.getenv("APP_VERSION", "AR1"),
-            environment=os.getenv("ENVIRONMENT", "development"),
-            log_level=os.getenv("LOG_LEVEL", "INFO"),
+            environment=os.getenv("APP_ENV", "development"),
+            log_level=os.getenv("LOG_LEVEL", "INFO").upper(),
             openai_api_key=os.getenv("OPENAI_API_KEY"),
             gemini_api_key=os.getenv("GEMINI_API_KEY"),
             tavily_api_key=os.getenv("TAVILY_API_KEY"),
@@ -98,40 +56,40 @@ class Config:
 
     def validate(self, strict: bool = False) -> None:
         """
-        Validate configuration.
-
+        Ensure the configuration is valid.
         Args:
-            strict: If True, raise ConfigError when no provider API key
-                is set at all. Sprint 2 never calls a provider, so this
-                defaults to False. Sprint 4+ should call
-                `config.validate(strict=True)` before making live calls.
-
+            strict: If True, raises ConfigError if any API key is missing.
+                   If False (Sprint 2 default), only warns or logs.
         Raises:
-            ConfigError: If strict validation fails.
+            ConfigError: If validation fails in strict mode.
         """
+        valid_log_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
+        if self.log_level not in valid_log_levels:
+            raise ConfigError(f"Invalid LOG_LEVEL: {self.log_level}")
+
         if strict:
-            has_any_key = any(
-                [self.openai_api_key, self.gemini_api_key, self.tavily_api_key]
-            )
-            if not has_any_key:
-                raise ConfigError(
-                    "No provider API keys found. Set at least one of "
-                    "OPENAI_API_KEY, GEMINI_API_KEY, TAVILY_API_KEY in .env."
-                )
+            missing = []
+            if not self.openai_api_key: missing.append("OPENAI_API_KEY")
+            if not self.gemini_api_key: missing.append("GEMINI_API_KEY")
+            if not self.tavily_api_key: missing.append("TAVILY_API_KEY")
+            
+            if missing:
+                raise ConfigError(f"Missing required API keys: {', '.join(missing)}")
 
     def masked_summary(self) -> dict:
         """
-        Return a dict summary of this config with secrets masked.
-
-        Lets other modules (e.g. logger) report config state at
-        startup without ever leaking key material into logs.
+        Returns a dictionary of config values with secrets masked.
+        Use this for logging startup configuration.
         """
-
-        def _mask(value: Optional[str]) -> str:
-            return f"set ({len(value)} chars)" if value else "not set"
+        def _mask(val: Optional[str]) -> str:
+            if not val:
+                return "not set"
+            # Show first 4 and last 4 chars, mask the middle
+            if len(val) <= 8:
+                return "set (********)"
+            return f"set ({val[:4]}...{val[-4:]})"
 
         return {
-            "app_name": self.app_name,
             "app_version": self.app_version,
             "environment": self.environment,
             "log_level": self.log_level,
