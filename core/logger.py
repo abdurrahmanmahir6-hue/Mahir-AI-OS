@@ -72,8 +72,10 @@ def configure_logging(
     root_logger.setLevel(level.upper())
 
     formatter: logging.Formatter
-    formatter = JsonFormatter() if json_format else logging.Formatter(
-        _LOG_FORMAT, datefmt=_DATE_FORMAT
+    formatter = (
+        JsonFormatter()
+        if json_format
+        else logging.Formatter(_LOG_FORMAT, datefmt=_DATE_FORMAT)
     )
 
     console_handler = logging.StreamHandler(stream=sys.stdout)

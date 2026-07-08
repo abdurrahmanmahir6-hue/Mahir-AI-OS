@@ -99,8 +99,7 @@ class Orchestrator:
         """
         self.state.task_status = TaskStatus.WAITING_ON_HUMAN
         logger.warning(
-            "Agent Layer not implemented yet (Sprint 3+). "
-            "Would have routed to '%s'.",
+            "Agent Layer not implemented yet (Sprint 3+). Would have routed to '%s'.",
             route.agent_id,
         )
         return OrchestratorResponse(

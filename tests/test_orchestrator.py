@@ -65,7 +65,9 @@ class TestOrchestratorToolDispatch(unittest.TestCase):
         result = orchestrator._dispatch_to_tool("send_email", to="a@example.com")
 
         self.assertEqual(result, "handled:send_email")
-        self.assertEqual(fake_dispatcher.calls, [("send_email", {"to": "a@example.com"})])
+        self.assertEqual(
+            fake_dispatcher.calls, [("send_email", {"to": "a@example.com"})]
+        )
 
 
 if __name__ == "__main__":

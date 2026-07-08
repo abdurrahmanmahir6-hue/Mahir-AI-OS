@@ -21,6 +21,7 @@ class TestAppStateSession(unittest.TestCase):
         state.start_session(session_id="abc-123", user="alice")
 
         self.assertIsNotNone(state.current_session)
+        assert state.current_session is not None
         self.assertEqual(state.current_session.session_id, "abc-123")
         self.assertTrue(state.current_session.is_active)
         self.assertEqual(state.current_user, "alice")
@@ -31,6 +32,8 @@ class TestAppStateSession(unittest.TestCase):
         state.start_session(session_id="abc-123")
         state.end_session()
 
+        self.assertIsNotNone(state.current_session)
+        assert state.current_session is not None
         self.assertFalse(state.current_session.is_active)
         self.assertEqual(state.task_status, TaskStatus.IDLE)
 

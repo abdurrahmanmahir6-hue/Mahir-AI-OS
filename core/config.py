@@ -8,15 +8,19 @@ MAFS (Mahir Agentic Framework Standard) Compliance:
     - Ch.2 (Truth Over Flattery): Fails fast if required keys are missing.
     - Ch.2 (Security): Implements masked_summary() to prevent log leaks.
 """
+
 from __future__ import annotations
 import os
 from dataclasses import dataclass
 from typing import Optional
 from dotenv import load_dotenv
 
+
 class ConfigError(Exception):
     """Raised when the configuration is invalid or missing required fields."""
+
     pass
+
 
 @dataclass
 class Config:
@@ -25,6 +29,7 @@ class Config:
     Access values via attributes (e.g., config.openai_api_key).
     Use Config.load() to instantiate from environment variables.
     """
+
     # System Settings
     app_name: str = "Mahir AI OS"
     app_version: str = "AR1"
@@ -71,7 +76,9 @@ class Config:
             raise ConfigError(f"Invalid LOG_LEVEL: {self.log_level}")
 
         if strict:
-            has_any_key = any([self.openai_api_key, self.gemini_api_key, self.tavily_api_key])
+            has_any_key = any(
+                [self.openai_api_key, self.gemini_api_key, self.tavily_api_key]
+            )
             if not has_any_key:
                 raise ConfigError(
                     "No provider API keys found. Set at least one of "
@@ -83,6 +90,7 @@ class Config:
         Returns a dictionary of config values with secrets masked.
         Use this for logging startup configuration.
         """
+
         def _mask(val: Optional[str]) -> str:
             if not val:
                 return "not set"
