@@ -21,6 +21,7 @@ from providers.gemini_provider import GeminiProvider
 from providers.openai_provider import OpenAIProvider
 from providers.provider_manager import ProviderManager
 from providers.registry import ProviderRegistry
+from providers.groq_provider import GroqProvider
 
 __all__ = [
     "BaseProvider",
@@ -30,4 +31,5 @@ __all__ = [
     "ProviderRegistry",
     "OpenAIProvider",
     "GeminiProvider",
+    "GroqProvider",
 ]
