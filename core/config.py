@@ -275,7 +275,7 @@ class ProviderConfig:
 
 # Provider names that map to fields of the form ``{name}_api_key``.
 _PROVIDER_FIELD_NAMES: List[str] = [
-    "openai", "gemini", "tavily", "claude", "grok", "deepseek", "openrouter"," groq"
+    "openai", "gemini", "tavily", "claude", "grok", "deepseek", "openrouter", "groq"
 ]
 
 
@@ -454,8 +454,8 @@ class Config:
             if not self.providers.configured_providers():
                 raise ConfigError(
                     "strict=True: no provider API key configured. "
-                    "Set at least one of OPENAI_API_KEY / GEMINI_API_KEY / "
-                    "CLAUDE_API_KEY / TAVILY_API_KEY in .env."
+                    "Set at least one of GROQ_API_KEY / OPENAI_API_KEY / "
+                    "GEMINI_API_KEY / CLAUDE_API_KEY / TAVILY_API_KEY in .env."
                 )
 
     # validate_startup is the Sprint 3 name; alias it so both names work.
@@ -608,12 +608,12 @@ def _build(dotenv_path: Optional[str] = None) -> Config:
         grok_api_key       = _secret("GROK_API_KEY"),
         deepseek_api_key   = _secret("DEEPSEEK_API_KEY"),
         openrouter_api_key = _secret("OPENROUTER_API_KEY"),
-        groq_api_key			 = _secret("OPENROUTER_API_KEY"),
+        groq_api_key       = _secret("GROQ_API_KEY"),
         ollama_base_url    = _get("OLLAMA_BASE_URL", "http://localhost:11434"),
         # Sprint 3 Task 3 — active provider runtime parameters. Parsed
         # permissively here; core/startup_validation.py judges validity.
-        active_provider = _get("ACTIVE_PROVIDER", "openai").strip().lower(),
-        model           = _get("MODEL_NAME", ""),
+        active_provider = _get("ACTIVE_PROVIDER", "groq").strip().lower(),
+        model           = _get("MODEL_NAME", "openai/gpt-oss-120b"),
         timeout_seconds = _float("PROVIDER_TIMEOUT_SECONDS", 30.0),
         temperature     = _float("TEMPERATURE", 0.7),
     )
@@ -728,3 +728,4 @@ def get_config() -> Config:
 # does not require provider keys, then call get_config.cache_clear() as
 # needed.
 config = get_config()
+
