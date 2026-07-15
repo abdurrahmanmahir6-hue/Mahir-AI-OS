@@ -8,7 +8,7 @@ Sprint 2 scope:
     - No AI is used for routing yet — routing is simple keyword
       matching.
     - No real Agents exist yet, so the router returns an *agent_id
-      string* (per MAFS Ch.4 agent_id convention) rather than an Agent
+      string* (per IB-AR Ch.4 agent_id convention) rather than an Agent
       instance. Sprint 3 can introduce a real Agent Layer and have the
       Orchestrator resolve agent_id -> Agent instance, without
       changing this file.
