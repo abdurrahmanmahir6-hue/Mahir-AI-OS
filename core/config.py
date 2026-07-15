@@ -1,7 +1,7 @@
 """
 core/config.py
 ================================================================================
-Long-term configuration foundation for Mahir AI OS.
+Long-term configuration foundation for Iron Bolt.
 
 Design philosophy
 -----------------
@@ -249,7 +249,7 @@ class ProviderConfig:
 
     # ── Sprint 3 Task 3: active provider runtime parameters ────────────────
     active_provider: str   = "groq"
-    model:           str   = "llama-3.1-8b-instant"
+    model:           str   = "openai/gpt-oss-120b"
     timeout_seconds: float = 30.0
     temperature:     float = 0.7
 
@@ -377,7 +377,7 @@ class Config:
     """
 
     # ── core identity ──────────────────────────────────────────────────────
-    app_name:    str         = "Mahir AI OS"
+    app_name:    str         = "Iron Bolt"
     app_version: str         = "AR1"
     environment: Environment = Environment.DEVELOPMENT
     log_level:   LogLevel    = LogLevel.INFO
