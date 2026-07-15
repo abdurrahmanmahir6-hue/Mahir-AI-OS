@@ -22,7 +22,7 @@ from typing import Any
 
 class ToolDispatcher(ABC):
     """
-    Contract for the future Tool Layer (MAFS Ch.7 — Tool Rules).
+    Contract for the future Tool Layer (IB-AR Ch.7 — Tool Rules).
 
     Any concrete Tool Layer implementation plugs into the Orchestrator
     by implementing `dispatch()`. This keeps the Orchestrator's code
@@ -42,7 +42,7 @@ class ToolDispatcher(ABC):
         Returns:
             Whatever the tool implementation returns.
 
-        Implementations must honor MAFS Ch.7: destructive actions
+        Implementations must honor IB-AR Ch.7: destructive actions
         (delete/send/pay) require confirmation, every call must be
         logged, and permission scope must be enforced before the
         underlying action runs.
