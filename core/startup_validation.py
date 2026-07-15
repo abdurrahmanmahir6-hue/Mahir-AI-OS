@@ -26,7 +26,7 @@ permissively-parsed fields — nothing existing there changed shape.
 Security contract
 ------------------
 Only presence/absence of an API key is ever checked. The raw secret string
-is never read, printed, or included in an exception message (MAFS Chapter 10
+is never read, printed, or included in an exception message (IB-AR Chapter 10
 — Security; Chapter 2 — Transparency without leaking secrets).
 """
 
